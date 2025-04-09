@@ -1,0 +1,43 @@
+# ---------- 通用全局忽略 ----------
+# 系统文件
+.DS_Store
+desktop.ini
+Thumbs.db
+
+# 开发环境文件
+*.log
+logs/
+
+# IDE 配置
+.vscode/
+.idea/
+
+# 包管理器目录（递归忽略所有 node_modules）
+​**​/node_modules/
+
+# ---------- 后端专属忽略 ----------
+# Vercel 部署相关
+backend/.vercel/
+
+# 敏感文件
+backend/.env
+backend/.env.development
+
+# 编译/缓存文件
+backend/dist/
+
+# 测试覆盖报告
+coverage/
+.nyc_output/
+
+# ---------- 前端专属忽略 ----------
+# 构建产物
+frontend/dist/
+frontend/.next/
+
+# ---------- 特殊例外保留 ----------
+# 显式保留必要文件
+!​**​/package.json
+!​**​/package-lock.json
+!​**​/README.md
+!backend/server.js
