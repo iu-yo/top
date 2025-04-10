@@ -153,7 +153,7 @@
             const tableBody = document.getElementById('deviceTableBody');
             tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
 
-            axios.get('https://ui-yo-github-io.vercel.app/api/devices')
+            axios.get('https://api.vercel.com')
                 .then(response => {
                     cachedDevices = response.data;
                     renderDevices(response.data);
@@ -221,7 +221,7 @@
         // 搜索功能
         function searchDevices() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            axios.get('https://ui-yo-github-io.vercel.app/api/devices')
+            axios.get('https://api.vercel.com')
                 .then(response => {
                     const filtered = response.data.filter(device => 
                         Object.entries(device).some(([key, value]) => 
@@ -237,7 +237,7 @@
         // 筛选功能
         function filterDevices() {
             const status = document.getElementById('statusFilter').value;
-            axios.get('https://ui-yo-github-io.vercel.app/api/devices')
+            axios.get('https://api.vercel.com')
                 .then(response => {
                     const filtered = status 
                         ? response.data.filter(d => d.设备资产状态 === status)
