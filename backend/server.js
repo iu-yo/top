@@ -1,16 +1,16 @@
+Access-Control-Allow-Origin
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
-const mysql = require('mysql2/promise'); // ✅ 统一使用 Promise 版本
-
+const mysql = require('mysql2'); // ✅ 统一使用 Promise 版本
 const app = express();
 
 // ================== CORS 配置 ==================
 app.use(
   cors({
     origin: process.env.NODE_ENV === 'production' 
-      ? 'https://github.com/iu-yo/top.git' 
+      ? 'https://iu-yo.github.io/top/' 
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
   })
