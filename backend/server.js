@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
-const mysql = require('mysql2'); // ✅ 统一使用 Promise 版本
+const mysql = require('mysql2/promise); // ✅ 统一使用 Promise 版本
 const app = express();
 
 // ================== CORS 配置 ==================
