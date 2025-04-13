@@ -10,7 +10,8 @@ const app = express();
 app.use(
   cors({
     origin: process.env.NODE_ENV === 'production' 
-      ? 'https://iu-yo.github.io/top/' 
+    ? '*' 
+    : '*',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
   })
