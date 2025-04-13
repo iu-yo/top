@@ -1,106 +1,275 @@
-<script>
-    // ================== 新增配置部分 ================== //
-    const API_BASE = 'https://api.vercel.com/v8/projects'; // [!++ 修改API端点++]
-    const VERCEL_TOKEN = '你的访问令牌'; // [!++ 新增认证令牌++]
-
-    let cachedDevices = [];
-
-    document.addEventListener('DOMContentLoaded', function () {
-        fetchDevices().catch(handleError); // [!++ 改为异步调用++]
-        setInterval(() => { // [!++ 使用箭头函数避免this问题++]
-            fetchDevices().catch(handleError);
-        }, 10 * 60 * 1000);
-    });
-
-    // ================== 重构后的fetchDevices函数 ================== //
-    async function fetchDevices() { // [!++ 改为async/await语法++]
-        const tableBody = document.getElementById('deviceTableBody');
-        tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
-
-        try {
-            const response = await axios.get(API_BASE, { // [!++ 使用配置的API地址++]
-                headers: { // [!++ 新增请求头++]
-                    'Authorization': `Bearer ${VERCEL_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                httpAgent: new (require('http2').Http2Agent)() // [!++ 启用HTTP/2++]
-            });
-            
-            cachedDevices = response.data.projects; // [!++ 根据API响应结构调整++]
-            renderDevices(cachedDevices);
-        } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
-            throw error;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备台账管理系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #4a90e2;
+            --secondary-gray: #f8f9fa;
         }
-    }
+        
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-blue), #2674cf);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .device-table {
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.9em;
+            table-layout: auto;
+        }
+        
+        .device-table tbody tr {
+            height: 40px;
+        }
+        
+        .device-table thead th {
+            background-color: var(--primary-blue);
+            color: white;
+            white-space: nowrap;
+            padding: 12px 12px;
+            min-width: 120px;
+        }
+        
+        .device-table td {
+            padding: 8px 12px;
+            vertical-align: middle;
+            word-break: break-word;
+            max-width: 500px;
+            min-width: 120px;
+        }
+        
+        .device-table tbody tr:nth-child(even) {
+            background-color: var(--secondary-gray);
+        }
+        
+        .device-table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+        
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-maintenance { background: #fff3e0; color: #ef6c00; }
+        .status-retired { background: #ffebee; color: #c62828; }
+        
+        .action-btn {
+            transition: transform 0.2s;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header text-white p-3 mb-4">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">📊 检验设备管理系统</h2>
+                <button class="btn btn-light btn-lg" onclick="alert('新增设备功能待实现')">
+                    <i class="bi bi-plus-circle"></i> 新增设备
+                </button>
+            </div>
+        </div>
+    </header>
 
-    // ================== 改进的renderDevices函数 ================== //
-    function renderDevices(devices) {
-        const tableBody = document.getElementById('deviceTableBody');
-        tableBody.innerHTML = ''; // [!++ 先清空现有内容++]
-
-        // [!++ 使用模板字符串优化可读性++]
-        const rows = devices.map(device => `
-            <tr>
-                <td>${device.所属机构 || '-'}</td>
-                <!-- 其余列保持类似结构 -->
-                <td><span class="status-badge ${getStatusClass(device.设备资产状态)}">${device.设备资产状态}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary action-btn" 
-                            onclick="viewDetails('${device.设备编号}')">
-                        详情
+    <main class="container">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" 
+                           placeholder="输入设备名称/编号搜索...">
+                    <button class="btn btn-primary" onclick="searchDevices()">
+                        <i class="bi bi-search"></i> 搜索
                     </button>
-                </td>
-            </tr>
-        `).join('');
+                </div>
+            </div>
+            <div class="col-md-4 mt-2 mt-md-0">
+                <select id="statusFilter" class="form-select" onchange="filterDevices()" title="按设备状态筛选">
+                    
+                    <option value="">全部状态</option>
+                    <option value="运行中">运行中</option>
+                    <option value="维护中">维护中</option>
+                    <option value="已报废">已报废</option>
+                </select>
+            </div>
+        </div>
 
-        tableBody.innerHTML = rows; // [!++ 批量插入提升性能++]
-    }
+        <div class="card device-table">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>所属机构</th>
+                                <th>使用机构</th>
+                                <th>设备编号</th>
+                                <th>设备名称</th>
+                                <th>本位币原值</th>
+                                <th>生产厂家</th>
+                                <th>设备型号</th>
+                                <th>国别</th>
+                                <th>设备资产状态</th>
+                                <th>设备分类</th>
+                                <th>启用日期</th>
+                                <th>入账日期</th>
+                                <th>放置地点</th>
+                                <th>责任人</th>
+                                <th>资产代码</th>
+                                <th>配套设备</th>
+                                <th>备注</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceTableBody">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let cachedDevices = [];
 
-    // ================== 增强的辅助函数 ================== //
-    function getStatusClass(status) { // [!++ 扩展状态映射++]
-        const statusMap = {
-            'active': 'status-active', // [!++ 适配API返回的状态值++]
-            'maintenance': 'status-maintenance',
-            'retired': 'status-retired'
-        };
-        return statusMap[status?.toLowerCase()] || '';
-    }
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchDevices();
+            setInterval(fetchDevices, 10 * 60 * 1000);
+        });
 
-    // [!++ 新增货币格式化函数++]
-    function formatCurrency(value) {
-        return value ? `¥${Number(value).toLocaleString('zh-CN')}` : '-';
-    }
+        function fetchDevices() {
+            const tableBody = document.getElementById('deviceTableBody');
+            tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
+        const vercelAPI = axios.create({
+            baseURL: 'https://api.vercel.com',
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // 👈 从环境变量获取更安全
+  },
+  httpAgent: new require('http2').Http2Agent() // 启用HTTP/2
+});
 
-    // ================== 优化的搜索/筛选功能 ================== //
-    function searchDevices() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        const filtered = cachedDevices.filter(device =>  // [!++ 使用本地缓存++]
-            ['name', '设备编号'].some(key => 
-                String(device[key] || '').toLowerCase().includes(query)
-        );
-        renderDevices(filtered);
-    }
-
-    // ================== 增强的错误处理 ================== //
-    function handleError(error) { // [!++ 添加详细错误处理++]
-        console.error('操作失败:', error);
-        let message = '请求失败，请稍后重试';
-        
-        if (error.response) {
-            switch (error.response.status) {
-                case 401:
-                    message = '认证失败，请检查访问令牌'; // [!++ 特定错误提示++]
-                    break;
-                case 403:
-                    message = '权限不足，请联系管理员';
-                    break;
-                case 429:
-                    message = '请求过于频繁，请稍后再试';
-                    break;
-            }
+// 获取项目列表示例
+vercelAPI.get('/v8/projects') // 使用具体API路径
+  .then(response => {
+    cachedDevices = response.data;
+    renderDevices(response.data);
+  })
+  .catch(error => {
+    tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
+    handleError(error);
+  });
         }
-        
-        alert(`错误：${message}`);
-    }
-</script>
+            
+           // axios.get('https://api.vercel.com')
+              //  .then(response => {
+               //     cachedDevices = response.data;
+               //     renderDevices(response.data);
+              //  })
+             //   .catch(error => {
+             //       tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
+             //       handleError(error);
+             //   });
+
+        function renderDevices(devices) {
+            const tableBody = document.getElementById('deviceTableBody');
+            const fragment = document.createDocumentFragment();
+
+            devices.forEach(device => {
+                const tr = document.createElement('tr');
+                Object.entries(device).forEach(([key, value]) => {
+                    const td = document.createElement('td');
+                    if (key === '设备资产状态') {
+                        const statusClass = getStatusClass(value);
+                        td.innerHTML = `<span class="status-badge ${statusClass}">${value}</span>`;
+                    } else {
+                        td.textContent = formatValue(value, key);
+                    }
+                    tr.appendChild(td);
+                });
+
+                // 添加操作按钮
+                const actionTd = document.createElement('td');
+                actionTd.innerHTML = `
+                        <button class="btn btn-sm btn-outline-primary action-btn" 
+                                onclick="viewDetails('${device.设备编号}')">
+                            详情
+                        </button>`;
+                tr.appendChild(actionTd);
+
+                fragment.appendChild(tr);
+            });
+
+            tableBody.innerHTML = '';
+            tableBody.appendChild(fragment);
+        }
+
+        // 辅助函数
+        function getStatusClass(status) {
+            return {
+                '运行中': 'status-active',
+                '维护中': 'status-maintenance',
+                '已报废': 'status-retired'
+            }[status] || '';
+        }
+
+        function formatValue(value, key) {
+            if (['启用日期', '入账日期'].includes(key)) {
+                return value ? new Date(value).toISOString().split('T')[0] : '';
+            }
+            return value || '';
+        }
+
+        function handleError(error) {
+            console.error('操作失败:', error);
+            alert('请求失败，请检查控制台日志');
+        }
+
+        // 搜索功能
+        function searchDevices() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            axios.get('/api/devices')
+                .then(response => {
+                    const filtered = response.data.filter(device => 
+                        Object.entries(device).some(([key, value]) => 
+                            ['设备名称', '设备编号'].includes(key) && 
+                            String(value).toLowerCase().includes(query)
+                        )
+                    );
+                    renderDevices(filtered);
+                })
+                .catch(handleError);
+        }
+
+        // 筛选功能
+        function filterDevices() {
+            const status = document.getElementById('statusFilter').value;
+            axios.get('/api/devices')
+                .then(response => {
+                    const filtered = status 
+                        ? response.data.filter(d => d.设备资产状态 === status)
+                        : response.data;
+                    renderDevices(filtered);
+                })
+                .catch(handleError);
+        }
+
+        // 查看详情
+        function viewDetails(deviceId) {
+            alert(`查看设备详情: ${deviceId}`);
+        }
+    </script>
+</body>
+</html>
