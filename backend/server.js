@@ -39,6 +39,7 @@ async function testConnection() {
     console.log('Connected to the database as id ' + connection.threadId);
   } catch (err) {
     console.error('Error connecting to the database:', err);
+     throw new Error('Database connection failed'); // 抛出错误
   } finally {
     if (connection) connection.release();
     // 注意：不要关闭 pool，因为后续还要用
