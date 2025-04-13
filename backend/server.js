@@ -15,7 +15,7 @@ app.use(cors({
   origin: 'https://iu-yo.github.io'
 }));
     methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type： application/json', 'Authorization']
   })
 );
 
