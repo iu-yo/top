@@ -7,11 +7,13 @@ const mysql = require('mysql2/promise); // ✅ 统一使用 Promise 版本
 const app = express();
 
 // ================== CORS 配置 ==================
-app.use(
-  cors({
-    origin: process.env.NODE_ENV === 'production' 
-    ? '*' 
-    : '*',
+app.use(cors({
+    //origin: process.env.NODE_ENV === 'production' 
+    //? '*' 
+    //: '*',
+  app.use(cors({
+  origin: 'https://iu-yo.github.io'
+}));
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
   })
