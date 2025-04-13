@@ -221,7 +221,7 @@
         // 搜索功能
         function searchDevices() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            axios.get('https://vercel.com/ui-yo/ui-project.vercel.app/api/devices')
+            axios.get('/api/devices')
                 .then(response => {
                     const filtered = response.data.filter(device => 
                         Object.entries(device).some(([key, value]) => 
@@ -237,7 +237,7 @@
         // 筛选功能
         function filterDevices() {
             const status = document.getElementById('statusFilter').value;
-            axios.get('https://vercel.com/ui-yo/ui-project.vercel.app/api/devices')
+            axios.get('/api/devices')
                 .then(response => {
                     const filtered = status 
                         ? response.data.filter(d => d.设备资产状态 === status)
