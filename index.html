@@ -153,7 +153,7 @@
             const tableBody = document.getElementById('deviceTableBody');
             tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
 
-            axios.get('https://vercel.com/ui-yo/ui-project.vercel.app/api/devices')
+            axios.get('http://localhost:3001/api/devices')
                 .then(response => {
                     cachedDevices = response.data;
                     renderDevices(response.data);
