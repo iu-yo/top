@@ -10,7 +10,7 @@ const app = express();
 app.use(cors({
     //origin: process.env.NODE_ENV === 'production' 
     //? '*' 
-    //: '*',
+    : '*',
   app.use(cors({
   origin: 'https://iu-yo.github.io'
 }));
