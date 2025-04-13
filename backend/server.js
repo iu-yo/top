@@ -3,21 +3,22 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
-const mysql = require('mysql2/promise); // ✅ 统一使用 Promise 版本
+const mysql = require('mysql2/promise'); // ✅ 修正引号
 const app = express();
 
 // ================== CORS 配置 ==================
 app.use(cors({
-    //origin: process.env.NODE_ENV === 'production' 
-    //? '*' 
-    //: '*',
-  app.use(cors({
-  origin: 'https://iu-yo.github.io'
+  origin: 'https://iu-yo.github.io',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // ✅ 包含OPTIONS
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true // 如果需要跨域携带cookie
 }));
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  })
-);
+
+// 显式处理OPTIONS请求（可选但推荐）
+app.options('*', cors());
+
+// ================== 其他中间件 ==================
+app.use(express.json());
 
 // ================== 数据库配置 ==================
 const dbConfig = {
