@@ -1,4 +1,4 @@
-Access-Control-Allow-Origin: *
+Access-Control-Allow-Origin: https://iu-yo.github.io
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
