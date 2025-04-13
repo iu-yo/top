@@ -1,4 +1,4 @@
-Access-Control-Allow-Origin
+Access-Control-Allow-Origin: *
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
