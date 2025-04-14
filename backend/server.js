@@ -6,16 +6,16 @@ const cron = require('node-cron');
 const mysql = require('mysql2/promise'); // ✅ 修正引号
 const app = express();
 
-// ================== CORS 配置 ==================
-app.use(cors({
-  origin: 'https://iu-yo.github.io',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // ✅ 包含OPTIONS
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true // 如果需要跨域携带cookie
-}));
-
-// 显式处理OPTIONS请求（可选但推荐）
-app.options('*', cors());
+// ================== CORS 配置（核心改动） ==================
+app.use(cors
+  ({origin: process.env.NODE_ENV === 'production' // 生产环境：只允许你的前端域名访问（替换为实际地址）
+      ? '*' // 
+      : '*', // 开发环境：允许所有来源（方便调试）
+     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+     credentials: true // 如果需要跨域携带cookie 
+  })
+);
 
 // ================== 其他中间件 ==================
 app.use(express.json());
