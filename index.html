@@ -152,9 +152,9 @@
         function fetchDevices() {
             const tableBody = document.getElementById('deviceTableBody');
             tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
-   //
+   
             const vercelAPI = axios.create({
-                baseURL: 'https://api.vercel.com/v8/top',
+                baseURL: 'https://api.vercel.com/v1/projects',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${process.env.TOKEN}` // 👈 从环境变量获取更安全修改       
@@ -162,26 +162,16 @@
            httpAgent: new http2.Http2Agent() // 启用 HTTP/2
   });
           // 获取项目列表示例
-           vercelAPI.get('/v8/projects') // 使用具体API路径
+           vercelAPI.get('/v1/projects') 
            .then(response => {
               cachedDevices = response.data;
               renderDevices(response.data);
-  })
+            })
            .catch(error => {
                tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
                 handleError(error);
             });
              }
-            
-           // axios.get('https://api.vercel.com')
-              //  .then(response => {
-               //     cachedDevices = response.data;
-               //     renderDevices(response.data);
-              //  })
-             //   .catch(error => {
-             //       tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
-             //       handleError(error);
-             //   });
 
         function renderDevices(devices) {
             const tableBody = document.getElementById('deviceTableBody');
