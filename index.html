@@ -152,26 +152,17 @@
         function fetchDevices() {
             const tableBody = document.getElementById('deviceTableBody');
             tableBody.innerHTML = '<tr><td colspan="18" class="text-center py-4">加载中...</td></tr>';
-   
-            const vercelAPI = axios.create({
-                baseURL: 'https://api.vercel.com/v1/projects',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.TOKEN}` // 👈 从环境变量获取更安全修改       
-  },
-           httpAgent: new http2.Http2Agent() // 启用 HTTP/2
-  });
-          // 获取项目列表示例
-           vercelAPI.get('/v1/projects') 
-           .then(response => {
-              cachedDevices = response.data;
-              renderDevices(response.data);
-            })
-           .catch(error => {
-               tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
-                handleError(error);
-            });
-             }
+
+            axios.get('http://localhost:3001/api/devices')
+                .then(response => {
+                    cachedDevices = response.data;
+                    renderDevices(response.data);
+                })
+                .catch(error => {
+                    tableBody.innerHTML = '<tr><td colspan="18" class="text-center text-danger py-4">加载失败</td></tr>';
+                    handleError(error);
+                });
+        }
 
         function renderDevices(devices) {
             const tableBody = document.getElementById('deviceTableBody');
@@ -230,7 +221,7 @@
         // 搜索功能
         function searchDevices() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            axios.get('/api/devices')
+            axios.get('http://localhost:3001/api/devices')
                 .then(response => {
                     const filtered = response.data.filter(device => 
                         Object.entries(device).some(([key, value]) => 
@@ -246,7 +237,7 @@
         // 筛选功能
         function filterDevices() {
             const status = document.getElementById('statusFilter').value;
-            axios.get('/api/devices')
+            axios.get('http://localhost:3001/api/devices')
                 .then(response => {
                     const filtered = status 
                         ? response.data.filter(d => d.设备资产状态 === status)
